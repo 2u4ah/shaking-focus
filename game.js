@@ -392,12 +392,6 @@ const DISTRACTIONS = [
   },
   {
     type: 'youtube',
-    appName: 'YouTube 🔴',
-    title: '침착맨 실시간 라이브',
-    body: '라이브 방송 중: [대충 수다나 떠는 방과후 방송]'
-  },
-  {
-    type: 'youtube',
     appName: 'YouTube 🎬',
     title: '넷플릭스 코리아',
     body: '[공식 예고편] 오징어 게임 시즌 2 드디어 출시!! 충격 결말 공개?'
