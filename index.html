@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>흔들리는 집중 (Shaking Focus) - 디지털 디스트랙션 리듬게임</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Ambient Audio Control -->
+  <button id="mute-btn" class="mute-btn" title="음향 켜기/끄기">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="sound-icon">
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+      <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+    </svg>
+  </button>
+
+  <div id="app-container">
+    
+    <!-- 1. OPENING SCREEN -->
+    <div id="opening-screen" class="screen">
+      <!-- Background Floating Notifications Area -->
+      <div id="opening-notifications" class="distraction-container-opening"></div>
+
+      <!-- Cozy Desk CSS Illustration in Background -->
+      <div class="desk-illustration">
+        <div class="desk-surface"></div>
+        <div class="desk-lamp">
+          <div class="lamp-head"></div>
+          <div class="lamp-light"></div>
+        </div>
+        <div class="desk-laptop">
+          <div class="laptop-screen">
+            <div class="screen-content">
+              <div class="code-lines">
+                <span></span><span></span><span></span><span></span>
+              </div>
+              <div class="screen-cursor"></div>
+            </div>
+          </div>
+          <div class="laptop-keyboard"></div>
+        </div>
+        <div class="desk-mug">☕</div>
+        <div class="desk-book">📚</div>
+      </div>
+
+      <div class="logo-wrapper">
+        <div class="logo-main">흔들리는 집중</div>
+        <div class="logo-sub">SHAKING FOCUS</div>
+      </div>
+      
+      <div class="intro-box">
+        <p>
+          책상 앞에 앉아 드디어 열공을 다짐하는 그 순간...<br>
+          스마트폰 카톡, SNS 좋아요 알림, 광고 팝업, 친구의 게임 초대가 연속으로 쏟아지기 시작합니다.
+        </p>
+        <p>
+          내려오는 과제와 전공 서적 노트들을 빨간 판정선에서 <strong>D, F, J, K</strong> 키로 깔끔하게 처리하세요!<br>
+          하지만 중간중간 시야를 가리는 <strong>방해 팝업들은 마우스로 빠르게 X 버튼을 클릭</strong>해야 뒤가 보입니다.
+        </p>
+        <p class="intro-question">
+          수많은 정보와 자극 속에서 나의 진짜 집중도는 얼마일까?
+        </p>
+      </div>
+      
+      <button id="start-btn" class="btn-glowing">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M8 5v14l11-7z"/>
+        </svg>
+        집중하기 시작
+      </button>
+    </div>
+
+    <!-- 2. COUNTDOWN SCREEN -->
+    <div id="countdown-screen" class="screen hidden">
+      <div id="countdown-text" class="countdown-text">3</div>
+    </div>
+
+    <!-- 3. GAME SCREEN -->
+    <div id="game-screen" class="screen hidden">
+      <!-- Left Info Panel -->
+      <div class="game-info-panel">
+        <div class="panel-header">
+          <div class="logo-mini">흔들리는 집중</div>
+          
+          <div class="stat-item">
+            <div class="stat-label">현재 집중도 (Score)</div>
+            <div id="score-value" class="stat-value score">0</div>
+          </div>
+          
+          <div class="stat-item">
+            <div class="stat-label">연속 집중 (Combo)</div>
+            <div id="combo-value" class="stat-value">0</div>
+          </div>
+          
+          <div class="stat-item">
+            <div class="stat-label">집중 기한 (Time)</div>
+            <div class="progress-container">
+              <div id="timer-bar" class="progress-bar"></div>
+            </div>
+            <div id="timer-text" class="timer-text">60s</div>
+          </div>
+        </div>
+        
+        <div class="key-guide-box">
+          <div class="key-guide-title">조작 가이드</div>
+          <div class="key-guide-list">
+            <span class="key-badge">D</span>
+            <span class="key-badge">F</span>
+            <span class="key-badge">J</span>
+            <span class="key-badge">K</span>
+          </div>
+          <div class="key-guide-note">
+            ※ 방해 알림창은 마우스로 ✕ 클릭!
+          </div>
+        </div>
+      </div>
+
+      <!-- Play Area (Lanes + Distractions) -->
+      <div class="playboard-wrapper">
+        <div class="playboard">
+          <!-- Lane D (index 0) -->
+          <div class="lane" data-key="d">
+            <div class="lane-glow"></div>
+            <div class="key-indicator">D</div>
+          </div>
+          
+          <!-- Lane F (index 1) -->
+          <div class="lane" data-key="f">
+            <div class="lane-glow"></div>
+            <div class="key-indicator">F</div>
+          </div>
+          
+          <!-- Lane J (index 2) -->
+          <div class="lane" data-key="j">
+            <div class="lane-glow"></div>
+            <div class="key-indicator">J</div>
+          </div>
+          
+          <!-- Lane K (index 3) -->
+          <div class="lane" data-key="k">
+            <div class="lane-glow"></div>
+            <div class="key-indicator">K</div>
+          </div>
+          
+          <!-- Judgement Line -->
+          <div class="judgement-line"></div>
+          
+          <!-- Rating feedback display -->
+          <div class="judgement-display-wrapper">
+            <div id="judgement-text" class="judgement-text">PERFECT</div>
+            <div id="combo-text" class="combo-text">0 <span>Combo</span></div>
+          </div>
+        </div>
+
+        <!-- Overlapping notification layers -->
+        <div id="distraction-container"></div>
+      </div>
+    </div>
+
+    <!-- 4. ENDING SCREEN -->
+    <div id="ending-screen" class="screen hidden">
+      <div class="ending-title">집중 분석 결과</div>
+      
+      <!-- Evaluation Badge Card -->
+      <div id="badge-card" class="badge-card">
+        <div id="badge-icon" class="badge-icon-wrapper">🏆</div>
+        <div id="badge-title" class="badge-title">집중력 마스터</div>
+        <div id="badge-desc" class="badge-desc"></div>
+      </div>
+      
+      <!-- Statistics Grid -->
+      <div class="ending-stats-grid">
+        <div class="end-stat-box">
+          <div class="lbl">최종 집중도</div>
+          <div id="end-score" class="val" style="color: var(--neon-cyan);">0점</div>
+        </div>
+        <div class="end-stat-box">
+          <div class="lbl">Perfect</div>
+          <div id="end-perfect" class="val" style="color: var(--neon-green);">0</div>
+        </div>
+        <div class="end-stat-box">
+          <div class="lbl">Good</div>
+          <div id="end-good" class="val" style="color: var(--neon-cyan);">0</div>
+        </div>
+        <div class="end-stat-box">
+          <div class="lbl">Miss</div>
+          <div id="end-miss" class="val" style="color: var(--neon-magenta);">0</div>
+        </div>
+      </div>
+
+      <div class="ending-extra-stats">
+        <div class="end-stat-box-row">
+          <span>최대 연속 집중 (Max Combo)</span>
+          <span id="end-maxcombo" class="val-white">0</span>
+        </div>
+        <div class="end-stat-box-row">
+          <span>평가 일시</span>
+          <span id="end-date" class="val-muted">-</span>
+        </div>
+      </div>
+      
+      <div class="ending-buttons">
+        <button id="restart-btn" class="btn-glowing restart-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="fill: none;">
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+          </svg>
+          다시 도전하기
+        </button>
+        <button id="share-btn" class="btn-secondary">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="18" cy="5" r="3"></circle>
+            <circle cx="6" cy="12" r="3"></circle>
+            <circle cx="18" cy="19" r="3"></circle>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+          </svg>
+          결과 공유하기
+        </button>
+      </div>
+    </div>
+
+  </div>
+  
+  <script src="game.js"></script>
+</body>
+</html>
