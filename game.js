@@ -371,14 +371,6 @@ const DISTRACTIONS = [
   {
     type: 'kakao',
     appName: '카카오톡',
-    title: '과대표 [수34 AI창의컴퓨팅]',
-    body: '야 기말과제 제출 오늘 밤 11시 59분까지인 거 다들 잊지 마라!',
-    bgColor: '#f7e600',
-    color: '#3a1d1d'
-  },
-  {
-    type: 'kakao',
-    appName: '카카오톡',
     title: '쿠팡 로켓배송 📦',
     body: '[로켓와우] 배송 완료! 기계식 키보드가 문 앞에 안전히 배송되었습니다.',
     bgColor: '#f7e600',
@@ -477,7 +469,7 @@ class Game {
     
     // Dynamic difficulty parameters (Percentage height per second)
     this.noteSpeed = 30.0; // cross 30% of screen height per second
-    this.spawnProbability = 0.45; // beat-sync note spawn rate
+    this.spawnProbability = 0.20; // beat-sync note spawn rate (lowered to balance score)
     this.distractionInterval = 5000; // milliseconds between distractions
     
     // Notes track
@@ -670,7 +662,7 @@ class Game {
     
     // Reset difficulty params (percentage of lane crossed per second)
     this.noteSpeed = 30.0; // takes 3.3s to reach bottom
-    this.spawnProbability = 0.45;
+    this.spawnProbability = 0.20; // Starts lower
     this.distractionInterval = 5000;
     
     // Start countdown timer
@@ -683,19 +675,19 @@ class Game {
       // Dynamic difficulty scaling + BGM Tempo increase
       if (elapsed === 15) {
         this.noteSpeed = 39.0; // takes 2.56s to reach bottom
-        this.spawnProbability = 0.55;
+        this.spawnProbability = 0.26;
         this.distractionInterval = 3500;
         this.sound.setBPM(130);
         this.resetDistractionTimer();
       } else if (elapsed === 30) {
         this.noteSpeed = 48.0; // takes 2.08s to reach bottom
-        this.spawnProbability = 0.65;
+        this.spawnProbability = 0.32;
         this.distractionInterval = 2200;
         this.sound.setBPM(142);
         this.resetDistractionTimer();
       } else if (elapsed === 45) {
         this.noteSpeed = 60.0; // takes 1.67s to reach bottom
-        this.spawnProbability = 0.75;
+        this.spawnProbability = 0.40;
         this.distractionInterval = 1200;
         this.sound.setBPM(155);
         this.resetDistractionTimer();
@@ -783,14 +775,15 @@ class Game {
       setTimeout(() => popup.remove(), 200);
     });
 
-    // Also auto-close after 7 seconds if left ignored
+    // Auto-close: Ads disappear in 3 seconds, others in 5 seconds
+    const autoCloseTime = (data.type === 'ad') ? 3000 : 5000;
     setTimeout(() => {
       if (popup.parentNode) {
         popup.style.transform = 'scale(0.9)';
         popup.style.opacity = '0';
         setTimeout(() => popup.remove(), 200);
       }
-    }, 7000);
+    }, autoCloseTime);
 
     container.appendChild(popup);
   }
@@ -835,7 +828,16 @@ class Game {
     
     // Filter active notes in target lane
     const laneNotes = this.notes.filter(n => n.lane === laneIndex && n.active);
-    if (laneNotes.length === 0) return;
+    
+    // Ghost press mashing penalty
+    if (laneNotes.length === 0) {
+      this.score = Math.max(0, this.score - 3);
+      this.combo = 0;
+      this.sound.playMiss();
+      this.showJudgement('miss');
+      this.updateStatsDisplay();
+      return;
+    }
     
     // Find closest note (judgement line sits at 80% height)
     let closestNote = laneNotes[0];
@@ -883,6 +885,13 @@ class Game {
       }
       
       this.showJudgement(rating);
+      this.updateStatsDisplay();
+    } else {
+      // Too far away penalty (anti-mashing)
+      this.score = Math.max(0, this.score - 3);
+      this.combo = 0;
+      this.sound.playMiss();
+      this.showJudgement('miss');
       this.updateStatsDisplay();
     }
   }
